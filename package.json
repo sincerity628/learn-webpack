@@ -1,0 +1,25 @@
+{
+  "name": "learn-webpack",
+  "version": "1.0.0",
+  "private": true,
+  "description": "reference: - [Webpack中文文档](https://www.webpackjs.com/concepts/)",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sincerity628/learn-webpack.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sincerity628/learn-webpack/issues"
+  },
+  "homepage": "https://github.com/sincerity628/learn-webpack#readme",
+  "devDependencies": {
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
+  }
+}
