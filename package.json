@@ -5,7 +5,7 @@
   "description": "reference: - [Webpack中文文档](https://www.webpackjs.com/concepts/)",
   "main": "index.js",
   "scripts": {
-    "start": "webpack"
+    "start": "webpack --config webpack.config.js"
   },
   "repository": {
     "type": "git",

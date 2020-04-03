@@ -1,16 +1,17 @@
-<h3 id="0">learn-webpack</h3>
+<h1 id="0">learn-webpack</h1>
 
 reference:
 - [Webpack中文文档](https://www.webpackjs.com/concepts/)
 
-#### 目录：
+目录：
 
 - [1. 初始化 npm](#1)
 - [2. 安装 webpack & webpack-cli](#2)
 - [3. 管理模块间的关系](#3)
+- [4. 配置Webpack](#4)
 
 ---
-文件结构：
+### 文件结构：
 ```
 |- .git
 |- assets
@@ -27,7 +28,7 @@ reference:
 |- index.html
 ```
 
-<h4 id="1">1. 初始化 npm</h4>
+<h3 id="1">1. 初始化 npm</h3>
 
 ```
 npm init -y
@@ -66,7 +67,7 @@ package.json:
 
 ---
 
-<h4 id="2">2. 安装 webpack & webpack-cli</h4>
+<h3 id="2">2. 安装 webpack & webpack-cli</h3>
 
 ```
 npm install --save-dev webpack webpack-cli
@@ -158,7 +159,7 @@ index.html:
 
 ---
 
-<h4 id="3">3. 管理模块间的关系</h4>
+<h3 id="3">3. 管理模块间的关系</h3>
 
 分析项目需求，每个文件之间的依赖关系如下：
 
@@ -208,3 +209,58 @@ index.html（现）：
 ##### [⬆️回到顶部⬆️](#0)
 
 ---
+
+<h3 id="4">4. 配置Webpack</h3>
+
+以上都是webpack的默认常规操作，因为我们还没有对Webpack进行实际的配置。
+
+- 新建一个```webpack.config.js```文件（名字随意）
+
+```
+|- .git
+|- assets
+|- dist
+  - main.js
+|- node_modules
+|- README.md
+|- .gitignore
+|- src
+|- package.json
+|- index.html
+|- webpack.config.js
+```
+
+- 根据文档，将之前的常规配置写下来并保存：
+```js
+const path = require('path');
+
+module.exports = {
+  mode: 'development', // 生成的main.js文件不被聚合，可以更好的理解代码
+  devtool: 'none', // 更好理解main.js中的内容
+  entry: './src/index.js', // 入口
+  output = { // 输出打包文件
+    filename: 'main.js',
+    path: path.resolve(__dirname, 'dist')
+  }
+}
+```
+
+- 要使用我们写好的配置，在```package.json```文件中修改
+
+package.json:
+```js
+{
+  "scripts": {
+    "start": "webpack --config webpack.config.js"
+    // webpack后面加上 --config 配置文件名称
+  },
+}
+```
+
+- 再次终端运行```npm start```，查看生成的```/dist/main.js```文件
+
+main.js:
+
+![main](./assets/screen-shots/main1.png)
+
+##### [⬆️回到顶部⬆️](#0)
