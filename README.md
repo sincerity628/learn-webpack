@@ -8,7 +8,8 @@ reference:
 - [1. 初始化 npm](#1)
 - [2. 安装 webpack & webpack-cli](#2)
 - [3. 管理模块间的关系](#3)
-- [4. 配置Webpack](#4)
+- [4. 配置 webpack](#4)
+- [5. 加载 loader](#5)
 
 ---
 ### 文件结构：
@@ -210,9 +211,9 @@ index.html（现）：
 
 ---
 
-<h3 id="4">4. 配置Webpack</h3>
+<h3 id="4">4. 配置 webpack</h3>
 
-以上都是webpack的默认常规操作，因为我们还没有对Webpack进行实际的配置。
+以上都是 webpack 的默认常规操作，因为我们还没有对它进行实际的配置。
 
 - 新建一个```webpack.config.js```文件（名字随意）
 
@@ -262,5 +263,87 @@ package.json:
 main.js:
 
 ![main](./assets/screen-shots/main1.png)
+
+##### [⬆️回到顶部⬆️](#0)
+
+---
+
+<h3 id="5">5. 加载 loader</h3>
+
+- 在/src文件夹中创建一个main.css文件
+
+main.css:
+```css
+body {
+  background-color: lightblue;
+}
+```
+
+```
+|- src
+  |- app
+  - index.js
+  - main.css
+```
+
+要想使用这个样式文件，若不直接在```index.html```中调用的话，我们可以在入口文件中，将这个样式文件加载进来，然后使用 webpack 中的 loader 打包然后自动在项目中引入对应的样式。
+
+- 在入口文件```index.js```中引入```main.css```
+```js
+import './main.css';
+```
+
+现在查看项目，是不会看到背景颜色的变化的，还需要进一步的配置。
+
+- 参考[文档](https://www.webpackjs.com/loaders/)，找到其中的**样式**部分
+
+![doc](./assets/screen-shots/doc.png)
+
+- 根据文档提示，安装style-loader和css-loader
+```
+npm install --save-dev css-loader style-loader
+```
+
+安装成功：
+package.json:
+```js
+{
+  "devDependencies": {
+    "css-loader": "^3.4.2",
+    "style-loader": "^1.1.3",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
+  }
+}
+```
+
+- 在webpack.config.js配置文件中添加对应配置
+```js
+module.exports = {
+  ...
+  module: {
+    rules: [
+      {
+        test: /\.css$/, // 所有以.css结尾的文件
+        use: ['style-loader', 'css-loader']
+        // css-loader 将css代码转化为js代码，存放在输出文件中
+        // style-loader 将输出文件中的被转化的样式添加到项目DOM中，以style标签的形式
+        // 顺序不要颠倒，先使用的css-loader反而在后！！！
+      },
+    ]
+  }
+}
+```
+[参考：style-loader](https://www.webpackjs.com/loaders/style-loader/)
+
+- 终端执行```npm start```
+
+- 查看项目，发现样式已经被添加
+
+![background](./assets/screen-shots/background.png)
+
+style-loader 生成的```style```标签：
+
+![style-tag](./assets/screen-shots/style.png)
 
 ##### [⬆️回到顶部⬆️](#0)
