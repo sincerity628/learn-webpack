@@ -11,6 +11,7 @@ reference:
 - [4. 配置 webpack](#4)
 - [5. 加载 css loader](#5)
 - [6. 加载 scss loader](#6)
+- [7. cache 和插件](#7)
 
 ---
 ### 文件结构：
@@ -466,5 +467,182 @@ import './main.scss';
 
 style-loader 生成的```style```标签（连同Bootstrap的样式）：
 ![style1-tag](./assets/screen-shots/style1.png)
+
+##### [⬆️回到顶部⬆️](#0)
+
+---
+
+<h3 id="7">7. cache 和插件</h3>
+
+- 打开一个网页，按下 F12 到开发者调试窗口
+- 依次点击 Network，CSS，查看网页的样式文件资源。
+- 按下```shift+command+R```：Hard Refresh
+
+![cache](./assets/screen-shots/cache1.png)
+
+可以看到，该网页有两个样式文件，后面也显示了文件的对应大小。这里可以发现文件是以```文件名-一串值.css```来命名的。
+
+- 按下```command+R```：Regular Refresh
+
+![cache1](./assets/screen-shots/cache2.png)
+
+此时发现文件名没有变化，但是文件大小处，两个文件中的内容都变成了（disk cache）。原因就是浏览器记得这两个文件，然后已经有了这两个文件的缓存，并没有重新到服务器获取这两个文件，而是从cache中调用。
+
+#### 思考？
+现在我们的项目依赖文件是```/dist/main.js```，万一，别的网站也拥有同样的```main.js```文件，并且浏览器已经有了对应的缓存，那么我们的项目很可能会造成功能丢失的现象。所以以上就可以解释为什么我们之前看到的那两个文件有着非常长的一段字符串在文件名当中了。
+
+#### 解决。
+使用 ContentHash 值来解决问题，根据文件内容来生成一个对应的 Hash 值，添加在文件的名称当中，这样每个不同版本的文件就会有不同的标识，也就不会有上面说的问题了。
+
+#### 实际操作
+webpack 当中就提供了对应的方法来生成这个 Hash 值，使用方法也非常简单。[参考](https://webpack.js.org/guides/caching/)
+
+- 修改 webpack 配置文件中的生成文件
+
+将输出文件名称后添加一个```.[contentHash]```即可。
+
+webpakck.config.js:
+```js
+output: {
+  filename: 'main.[contentHash].js',
+  path: path.resolve(__dirname, 'dist')
+},
+```
+
+- 终端执行```npm start```
+
+```
+|- dist
+  - main.d6808443d76dd7954fad.js
+  - main.js
+```
+
+可以看到新生成了一个文件，其中```d6808443d76dd7954fad```就是根据当前文件内容生成的对应的 Hash 值。若尝试改变文件内容会看到生成新的文件，如果内容不变的话，名称就不会改变。
+
+- 改变```index.js```文件中的内容
+
+index.js:
+```js
+(+) console.log('hi');
+```
+
+- 终端执行```npm start```
+
+```
+|- dist
+  - main.c818f4d42b05974d9b03.js
+  - main.d6808443d76dd7954fad.js
+  - main.js
+```
+
+这样就解决了之前说的浏览器缓存问题。
+
+#### 新的问题？
+
+现在项目中的```index.html```文件中引入的 script 文件是固定好的```main.js```，怎么能动态地改变这个script的来源呢？因为每一次修改文档，都会生成一个新的文件，如何去动态地引入呢？
+
+index.html:
+```html
+<body>
+  <script src="./dist/main.js"></script>
+</body>
+```
+
+#### 再次解决。
+webpack 中间提供了对应的插件（plugin），可以自动地生成 html 文件，并且自动引用每次打包好生成的```main.[contentHash].js```文件。[参考](https://www.webpackjs.com/plugins/html-webpack-plugin/)
+
+- 安装 HtmlWebpackPlugin
+```
+npm install --save-dev html-webpack-plugin
+```
+
+- 修改 webpack 配置文件
+
+webpack.config.js:
+```js
+(+) const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+module.exports = {
+(+)  plugins: [new HtmlWebpackPlugin()],
+}
+
+```
+
+- 终端执行```npm start```
+
+```
+|- dist
+  - index.html
+  - main.c818f4d42b05974d9b03.js
+  - main.d6808443d76dd7954fad.js
+  - main.js
+```
+
+生成的新的```index.html```文件：
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Webpack App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"></head>
+  <body>
+  <script src="main.c818f4d42b05974d9b03.js"></script></body>
+</html>
+```
+发现文件底部自动引入了依赖文件的最新版本。
+
+若要使用之前的项目```index.html```，需要进一步配置。[参考](https://github.com/jantimon/html-webpack-plugin#configuration)
+
+- 在/src文件夹中新建立一个```template.html```文件，作为自动生成的 html 文件模版。
+
+```
+|- src
+  - template.html
+```
+
+- 将原本的项目```index.html```（根目录下）文件中的内容复制到```template.html```中，除了尾部 script 标签，插件会自动生成。
+
+- 修改 webpack 配置
+
+webpack.config.js:
+```js
+plugins: [new HtmlWebpackPlugin({
+  template: './src/template.html'
+})]
+```
+
+- 终端执行```npm start```
+
+/dist/index.html:
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Webpack Demo</title>
+  </head>
+  <body class="container">
+    <h1 class="text-center mt-5">
+      Welcome!
+    </h1>
+    ...
+    <img src="./assets/webpack.svg" />
+  <script src="main.c818f4d42b05974d9b03.js"></script></body>
+</html>
+
+```
+在```/dist```下生成的```index.html```就是之前的对应内容了，并且还动态加入了最新版本的```main.js```。打开访问各种功能都还是正常的，但是由于文件的位置改变了，其中引入的图片相对位置也会变化，所以图片没有加载成功，这个问题留待解决。
+
+功能正常，图片加载失败：
+
+![cache3](./assets/screen-shots/cache3.png)
+
+- 现在可以将根目录下的```index.html```删除。
 
 ##### [⬆️回到顶部⬆️](#0)
